@@ -52,8 +52,48 @@ converted_test_audit = {
                     Course(catoid=u'17', compound="MATH2000"),
                     Course(catoid=u'17', compound="MATH3510")
                     }, 19, 1)
-}  # type: Set[Semester]
+}  # type: dict[Semester]
 
+converted_test_audit_unmet_requirements = {
+    RequiredCourse({Course(u'17', compound="ENGL1320"),
+                    Course(u'17', compound="ENGL1321"),
+                    Course(u'17', compound="ENGL1325"),
+                    Course(u'17', compound="LING1322"),
+                    Course(u'17', compound="TECM1322"),
+                    Course(u'17', compound="TECM2700")
+                    },
+                   None,
+                   'e885538a-ab0a-420b-8ebb-bc9ba8fcf246'
+                   ),
+    RequiredCourse({Course(u'17', compound="ART 1300"),
+                    Course(u'17', compound="ART 1301"),
+                    Course(u'17', compound="ART 2360"),
+                    Course(u'17', compound="COMM2060"),
+                    Course(u'17', compound="DANC1200"),
+                    Course(u'17', compound="DANC2800"),
+                    Course(u'17', compound="MUJS3400"),
+                    Course(u'17', compound="MUMH2040"),
+                    Course(u'17', compound="MUMH3000"),
+                    Course(u'17', compound="MUMH3010"),
+                    Course(u'17', compound="MUMH3500"),
+                    Course(u'17', compound="MUMH3510"),
+                    Course(u'17', compound="THEA1340"),
+                    Course(u'17', compound="THEA2340"),
+                    Course(u'17', compound="THEA3030"),
+                    Course(u'17', compound="THEA3040")
+                    },
+                   None,
+                   'bc0bb004-3a0f-4169-b599-53d3364cab17'),
+    RequiredCourse({Course(u'17', compound="HIST2600"),
+                    Course(u'17', compound="HIST2675"),
+                    Course(u'17', compound="TECM2700"),
+                    Course(u'17', compound="TECM2700"),
+                    Course(u'17', compound="TECM2700"),
+                    Course(u'17', compound="TECM2700"),
+                    },
+                   None,
+                   '665e41a7-ad67-483a-95b0-32f097fa8ab8')
+} # type: Set[RequiredCourse]
 
 class TestCourseMethods(unittest.TestCase):
     def setUp(self):
@@ -88,25 +128,7 @@ class TestSemesterMethods(unittest.TestCase):
                                       }, 19, 1)
 
     def test_print_semester(self):
-        # We have to do some tricky manipulation to test a print.
-        test_output = '''Semester: 19.1
-	CSCE 1040 - Computer Science II
-	catoid: 17
-	coid: 62976
-	prefix: CSCE
-	number: 1040
-	hours: 3
-	prereqs: 
-	coreqs:
-	EDCI 3500 - Knowing and Learning in Mathematics, Science and Computer Science
-	catoid: 17
-	coid: 63227
-	prefix: EDCI
-	number: 3500
-	hours: 3
-	prereqs: 
-	coreqs: 
-'''
+        # We have to do some tricky manipulation to test a print. We have to hijack the print function.
         captured_output = StringIO.StringIO()
         sys.stdout = captured_output
         self.testSemester.print_semester()
@@ -130,6 +152,7 @@ class TestFourYearPlanMethods(unittest.TestCase):
         print self.testFourYearPlan.semesters, converted_test_audit
         # self.assertEqual(self.testFourYearPlan.semesters, converted_test_audit)
 
+        # Test if we got all the previously completed coursework
         for semester in converted_test_audit:
             if semester in self.testFourYearPlan.semesters:
                 check_semester = converted_test_audit[semester]
@@ -144,6 +167,13 @@ class TestFourYearPlanMethods(unittest.TestCase):
                         test_class in test_semester.classes))
             else:
                 fail("Missing semester")
+
+        # Test if we imported all of the degree plan requirements.
+        self.assertTrue(len(self.testFourYearPlan.unmet_requirements) > 0) # check if we got any requirements.
+        for subrequirement in converted_test_audit_unmet_requirements:
+            assertTrue(any(subrequirement.equals_other_requirement(test_req) for test_req in self.testFourYearPlan.unmet_requirements))
+
+        self.testFourYearPlan.print_plan()
 
 
 if __name__ == '__main__':
