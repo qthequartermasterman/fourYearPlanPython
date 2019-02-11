@@ -97,7 +97,7 @@ converted_test_audit_unmet_requirements = {
 
 class TestCourseMethods(unittest.TestCase):
     def setUp(self):
-        self.testCourse = Course(u'17', u'63011')
+        self.testCourse = Course(u'17', "CSCE4240")
         self.page_data = self.testCourse._get_dom_from_webpage()
 
     def test_get_dom_from_webpage(self):
@@ -105,12 +105,12 @@ class TestCourseMethods(unittest.TestCase):
         pass
 
     def test_determine_title(self):
-        self.assertEquals(self.testCourse._determine_title(self.page_data),
+        self.assertEquals(self.testCourse._determine_title(),
                           "CSCE 4240 - Introduction to Digital Image Processing")
 
     def test_compound_init(self):
         self.testCourse = Course(u'13', compound="PSCI1041")
-        self.assertEquals(self.testCourse.coid, u'43946')
+        self.assertEquals(self.testCourse.get_coid(), u'43946')
         self.assertEquals(self.testCourse.prefix, u'PSCI')
         self.assertEquals(self.testCourse.number, u'1041')
 
@@ -140,6 +140,14 @@ class TestSemesterMethods(unittest.TestCase):
         self.assertIn('EDCI 3500 - Knowing and Learning in Mathematics, Science and Computer Science',
                       captured_output.getvalue())
 
+class TestRequiredCourseMethods(unittest.TestCase):
+    def setUp(self):
+        self.testRequiredCourse = RequiredCourse({Course(17, "CSCE1040"),
+                                                  Course(17,"CSCE2110")},
+                                                 set(), "12345677890", 17)
+    def test_equals_other_requirement(self):
+        self.assertTrue(RequiredCourse({Course(17, "CSCE1040"),
+                                        Course(17, "CSCE2110")}, set(), "12345677890", 17))
 
 class TestFourYearPlanMethods(unittest.TestCase):
     def setUp(self):
@@ -149,15 +157,12 @@ class TestFourYearPlanMethods(unittest.TestCase):
         audit_uri = "testAudit.html"
 
         self.testFourYearPlan.import_audit(audit_uri)
-        print self.testFourYearPlan.semesters, converted_test_audit
-        # self.assertEqual(self.testFourYearPlan.semesters, converted_test_audit)
 
         # Test if we got all the previously completed coursework
         for semester in converted_test_audit:
             if semester in self.testFourYearPlan.semesters:
                 check_semester = converted_test_audit[semester]
                 test_semester = self.testFourYearPlan.semesters[semester]
-                # check_semester.print_semester()
                 for course in check_semester.classes:
                     # see if course (or an identical one) is in test_semester.classes
                     # check over each course in test_semester.classes. if they have the same id then there is a match.
@@ -166,14 +171,12 @@ class TestFourYearPlanMethods(unittest.TestCase):
                         (test_class.is_identical_to_another_course(prefix=course.prefix, number=course.number)) for
                         test_class in test_semester.classes))
             else:
-                fail("Missing semester")
+                self.fail("Missing semester")
 
         # Test if we imported all of the degree plan requirements.
         self.assertTrue(len(self.testFourYearPlan.unmet_requirements) > 0) # check if we got any requirements.
         for subrequirement in converted_test_audit_unmet_requirements:
-            assertTrue(any(subrequirement.equals_other_requirement(test_req) for test_req in self.testFourYearPlan.unmet_requirements))
-
-        self.testFourYearPlan.print_plan()
+            self.assertTrue(any(subrequirement.equals_other_requirement(test_req) for test_req in self.testFourYearPlan.unmet_requirements))
 
 
 if __name__ == '__main__':
