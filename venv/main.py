@@ -3,10 +3,15 @@ import urllib2
 from bs4 import BeautifulSoup
 import urlparse
 import re
-import time
+import time import sleep
+import sys
+import webbrowser
 
 alreadyGeneratedCourses = {}
 
+audit_download_url = "https://uapd.admin.unt.edu/selfservice-batch/audit/create.html"
+template_report_uri = ""
+# TODO: Finish generating the template report
 
 class Course:
     prereqs = []
@@ -417,38 +422,40 @@ class FourYearPlan:
                 not_courses_objects = RequiredCourse.extract_courses(not_courses, audit_catoid)
                 self.unmet_requirements.add(RequiredCourse(select_courses_objects, not_courses_objects, subreq_id))
 
+    def populate_semesters(self):
+        # put all the required courses in semester
+        return None;
 
-# testSemester = Semester({Course(u'17', u'63011'), Course(u'17', u'63942'), Course(u'17', u'63929')}, 17, 0)
-# testPlan = FourYearPlan()
+    def generate_report(self, save_uri):
+        self.populate_semesters()
+        page = urllib2.urlopen(template_report_uri)
+        soup = BeautifulSoup(page, 'html.parser')
+        for semester in self.semesters:
+            # Use beautiful soup to add a table with the semester data
+            # Loop over each course and add it as an entry in the table
 
-
-# #####
-# Importer notes
-# Test document: testAudit.html
-# All courses that could be taken to fulfill something in the audit has the css selector span.course
-# All courses that have been taken are "tr.takenCourse:not(.ip)"
-# All courses that are in progress are "tr.takenCourse.ip"
-# #####
-
-
-'''
 def main():
-    # print "started"
-    #testCourse = Course(u'17', u'63011')
-    #testCourse.printinfo(show_prereqs=True)
+    if len(sys.argv) == 0:
+        print "The plan generator requires an audit to import. Please generate an html audit at this " \
+              "webpage ," , audit_download_url, ". You can save and download it by right clicking and selecting 'Save-as'. Please run this program " \
+              "again with the path to that file as an argument.\n"
+        print "Opening webpage in 5 seconds..."
+        time.sleep(5)
+        webbrowser.open(audit_download_url)
+    else:
+        plan = FourYearPlan()
+        plan.import_audit(sys.argv[1])
+        if len(sys.argv > 2):
+            plan_uri = plan.generate_report(sys.argv[2])
+        else:
+            plan_uri = plan.generate_report()
+        if plan_uri is not None:
+            webbrowser.open(plan_uri)
+        else:
+            print "Some error was detected, and the report could not be generated"
 
-    # print alreadyGeneratedCourses
-    # for course in alreadyGeneratedCourses:
-    #    alreadyGeneratedCourses[course].printinfo()
-
-    # testPlan.add_semester(testSemester)
-    # print testSemester.get_classes()
-    # print testSemester.get_hours()
-
-    # testPlan.check_semester_for_prereqs(17.0)
-    # print testPlan.semesters[17.0]
 
 if __name__ == "__main__":
     main()
 
-'''
+
