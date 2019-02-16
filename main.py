@@ -433,6 +433,7 @@ class FourYearPlan:
         for semester in self.semesters:
             # Use beautiful soup to add a table with the semester data
             # Loop over each course and add it as an entry in the table
+            # TODO: Implement this
             soup.append()
 
 def main():
