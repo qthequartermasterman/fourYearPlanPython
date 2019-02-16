@@ -3,7 +3,7 @@ import urllib2
 from bs4 import BeautifulSoup
 import urlparse
 import re
-import time import sleep
+import time
 import sys
 import webbrowser
 
@@ -433,12 +433,14 @@ class FourYearPlan:
         for semester in self.semesters:
             # Use beautiful soup to add a table with the semester data
             # Loop over each course and add it as an entry in the table
+            soup.append()
 
 def main():
-    if len(sys.argv) == 0:
-        print "The plan generator requires an audit to import. Please generate an html audit at this " \
-              "webpage ," , audit_download_url, ". You can save and download it by right clicking and selecting 'Save-as'. Please run this program " \
-              "again with the path to that file as an argument.\n"
+    if len(sys.argv) == 1:
+        print "The plan generator requires an audit to import.\n",\
+            "Please generate an html audit at this webpage, " + audit_download_url + ".\n",\
+            "You can save and download it by right clicking and selecting 'Save-as'.\n",\
+            "Please run this program again with the path to that file as an argument.\n"
         print "Opening webpage in 5 seconds..."
         time.sleep(5)
         webbrowser.open(audit_download_url)
@@ -453,7 +455,6 @@ def main():
             webbrowser.open(plan_uri)
         else:
             print "Some error was detected, and the report could not be generated"
-
 
 if __name__ == "__main__":
     main()
